@@ -15,7 +15,6 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
     year: 'numeric'
   }).toUpperCase();
 
-  // Map labels to specific colors as seen in screenshot
   const getLabelColor = (label?: string) => {
     const l = label?.toLowerCase() || '';
     if (l.includes('tech')) return 'bg-blue-600';
@@ -30,23 +29,24 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
   return (
     <article className="group cursor-pointer">
       <a href={`#/post/${post.id}`} className="block">
-        <div className="relative aspect-square overflow-hidden rounded-2xl mb-4 bg-gray-100">
+        <div className="relative aspect-[4/5] md:aspect-square overflow-hidden rounded-2xl mb-4 bg-gray-100 shadow-sm">
           <img 
             src={imageUrl} 
             alt={post.title} 
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
             loading="lazy"
           />
-          <span className={`absolute bottom-3 left-3 ${getLabelColor(mainLabel)} text-white text-[10px] font-black uppercase tracking-widest px-2.5 py-1.5 rounded-md`}>
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-300"></div>
+          <span className={`absolute bottom-3 left-3 ${getLabelColor(mainLabel)} text-white text-[10px] font-black uppercase tracking-widest px-2.5 py-1.5 rounded-md shadow-lg`}>
             {mainLabel}
           </span>
         </div>
-        <h3 className="text-base font-bold leading-snug mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+        <h3 className="text-base font-black leading-tight mb-2 line-clamp-2 group-hover:text-primary transition-colors tracking-tight">
           {post.title}
         </h3>
         <div className="flex items-center text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-          <svg className="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          <svg className="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
           {dateStr}
         </div>

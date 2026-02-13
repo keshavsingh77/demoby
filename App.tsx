@@ -19,13 +19,15 @@ const BottomNav: React.FC = () => {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 flex justify-around items-center py-3 z-50 md:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 flex justify-around items-center py-3 z-[999] md:hidden shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
       {items.map(item => (
         <a key={item.name} href={item.path} className="flex flex-col items-center space-y-1 group">
-          <svg className="w-6 h-6 text-gray-400 group-hover:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={item.icon} />
-          </svg>
-          <span className="text-[10px] font-bold text-gray-400 group-hover:text-primary uppercase tracking-wider">{item.name}</span>
+          <div className="p-2 rounded-xl group-hover:bg-primary/10 transition-colors">
+            <svg className="w-5 h-5 text-gray-400 group-hover:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d={item.icon} />
+            </svg>
+          </div>
+          <span className="text-[9px] font-black text-gray-400 group-hover:text-primary uppercase tracking-tighter">{item.name}</span>
         </a>
       ))}
     </nav>
@@ -54,13 +56,14 @@ const AppContent: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (blogInfo) document.title = `InsightHub - ${blogInfo.name}`;
-  }, [blogInfo, location]);
+    // Scroll to top on route change
+    window.scrollTo(0, 0);
+  }, [location]);
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
       <Header blogInfo={blogInfo} categories={categories} />
-      <main className="flex-grow max-w-7xl mx-auto px-4 py-8 w-full">
+      <main className="flex-grow max-w-7xl mx-auto px-4 py-8 w-full md:px-6 lg:px-8">
         <Routes>
           <Route path="/" element={<Home blogInfo={blogInfo} categories={categories} />} />
           <Route path="/about" element={<StandardPage type={PageType.ABOUT} />} />
@@ -68,8 +71,11 @@ const AppContent: React.FC = () => {
           <Route path="/privacy" element={<StandardPage type={PageType.PRIVACY} />} />
           <Route path="/disclaimer" element={<StandardPage type={PageType.DISCLAIMER} />} />
           <Route path="/terms" element={<StandardPage type={PageType.TERMS} />} />
+          
           <Route path="/post/:id" element={<PostRouteWrapper categories={categories} />} />
           <Route path="/category/:label" element={<CategoryRouteWrapper categories={categories} />} />
+          
+          <Route path="*" element={<Home blogInfo={blogInfo} categories={categories} />} />
         </Routes>
       </main>
       <Footer />
@@ -80,6 +86,7 @@ const AppContent: React.FC = () => {
 
 const PostRouteWrapper = ({ categories }: { categories: string[] }) => {
   const { id } = useParams<{ id: string }>();
+  // Component will re-render when 'id' changes
   return <PostPage postId={id || ''} categories={categories} />;
 };
 
@@ -90,7 +97,7 @@ const CategoryRouteWrapper = ({ categories }: { categories: string[] }) => {
 
 const App: React.FC = () => {
   return (
-    <HashRouter>
+    <HashRouter basename="/">
       <AppContent />
     </HashRouter>
   );
