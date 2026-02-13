@@ -4,6 +4,22 @@ import { BLOGGER_API_KEY, BLOG_ID } from '../constants';
 
 const BASE_URL = 'https://www.googleapis.com/blogger/v3/blogs';
 
+export const fetchRandomPostId = async (): Promise<string | null> => {
+  try {
+    const response = await fetch(`${BASE_URL}/${BLOG_ID}/posts?key=${BLOGGER_API_KEY}&maxResults=20&fetchBodies=false`);
+    if (!response.ok) return null;
+
+    const data = await response.json();
+    if (!data.items || data.items.length === 0) return null;
+
+    const randomIndex = Math.floor(Math.random() * data.items.length);
+    return data.items[randomIndex].id;
+  } catch (error) {
+    console.error("Error fetching random post", error);
+    return null;
+  }
+};
+
 export const fetchBlogInfo = async (): Promise<BloggerBlog> => {
   const response = await fetch(`${BASE_URL}/${BLOG_ID}?key=${BLOGGER_API_KEY}`);
   if (!response.ok) throw new Error('Failed to fetch blog info');
@@ -14,7 +30,7 @@ export const fetchPosts = async (pageToken?: string, label?: string): Promise<Bl
   let url = `${BASE_URL}/${BLOG_ID}/posts?key=${BLOGGER_API_KEY}&maxResults=10`;
   if (pageToken) url += `&pageToken=${pageToken}`;
   if (label) url += `&labels=${encodeURIComponent(label)}`;
-  
+
   const response = await fetch(url);
   if (!response.ok) throw new Error('Failed to fetch posts');
   return response.json();
