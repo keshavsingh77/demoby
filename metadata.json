@@ -1,0 +1,5 @@
+{
+  "name": "BloggerCMS Professional Blog",
+  "description": "A high-performance, AdSense-ready blog frontend using Blogger API v3 as a headless CMS, featuring SEO-optimized layouts and responsive design.",
+  "requestFramePermissions": []
+}
