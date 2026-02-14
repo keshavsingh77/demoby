@@ -7,6 +7,7 @@ interface SafeLinkOverlayProps {
     onVerify: () => void;
     onFinish: () => void;
     isProcessing: boolean;
+    renderMode?: 'full' | 'timer' | 'button';
 }
 
 const SafeLinkOverlay: React.FC<SafeLinkOverlayProps> = ({
@@ -15,7 +16,8 @@ const SafeLinkOverlay: React.FC<SafeLinkOverlayProps> = ({
     initialTimer,
     onVerify,
     onFinish,
-    isProcessing
+    isProcessing,
+    renderMode = 'full'
 }) => {
     const [verificationTimer, setVerificationTimer] = React.useState(5);
     const progressWidth = ((initialTimer - propTimer) / initialTimer) * 100;
@@ -30,6 +32,10 @@ const SafeLinkOverlay: React.FC<SafeLinkOverlayProps> = ({
     }, [step, verificationTimer]);
 
     const canVerify = verificationTimer === 0;
+
+    // Helper to determine visibility
+    const showTimer = renderMode === 'full' || renderMode === 'timer';
+    const showButton = renderMode === 'full' || renderMode === 'button';
 
     return (
         <div className="my-8 w-full max-w-2xl mx-auto">
@@ -63,39 +69,45 @@ const SafeLinkOverlay: React.FC<SafeLinkOverlayProps> = ({
             {step === 'timer' && (
                 <div className="aSlT" id="aSlCnt">
                     <div className="w-full">
-                        <div className="aSlP" style={{ display: propTimer > 0 ? 'flex' : 'none' }}>
-                            <div className="aSlW" style={{ width: `${progressWidth}%` }} />
-                            <span className="aSlC">
-                                Please wait <span className="aSlCd">{propTimer}</span> seconds...
-                            </span>
-                        </div>
+                        {showTimer && (
+                            <>
+                                <div className="aSlP" style={{ display: propTimer > 0 ? 'flex' : 'none' }}>
+                                    <div className="aSlW" style={{ width: `${progressWidth}%` }} />
+                                    <span className="aSlC">
+                                        Please wait <span className="aSlCd">{propTimer}</span> seconds...
+                                    </span>
+                                </div>
 
-                        <div className={`aScr ${propTimer === 0 ? 'visible' : ''}`}>
-                            <div className="aScrH">
-                                Scroll Down and click on <span className="hglt">Go to Link</span> for destination
-                            </div>
-                            <div className="aScrD">
-                                <svg className="line" viewBox="0 0 24 24">
-                                    <path d="M22 11.07V12a10 10 0 1 1-5.93-9.14" />
-                                    <polyline points="23 3 12 14 9 11" />
-                                </svg>
-                                Congrats! Link is Generated
-                            </div>
-                        </div>
+                                <div className={`aScr ${propTimer === 0 ? 'visible' : ''}`}>
+                                    <div className="aScrH">
+                                        Scroll Down and click on <span className="hglt">Go to Link</span> for destination
+                                    </div>
+                                    <div className="aScrD">
+                                        <svg className="line" viewBox="0 0 24 24">
+                                            <path d="M22 11.07V12a10 10 0 1 1-5.93-9.14" />
+                                            <polyline points="23 3 12 14 9 11" />
+                                        </svg>
+                                        Congrats! Link is Generated
+                                    </div>
+                                </div>
+                            </>
+                        )}
 
-                        <div className={`aSlB ${propTimer === 0 ? 'visible' : ''}`}>
-                            <a
-                                href="#"
-                                className="button safeGoL"
-                                title="Go to Link"
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    onFinish();
-                                }}
-                            >
-                                <i className="icon demo"></i>Go to Link
-                            </a>
-                        </div>
+                        {showButton && (
+                            <div className={`aSlB ${propTimer === 0 ? 'visible' : ''}`}>
+                                <a
+                                    href="#"
+                                    className="button safeGoL"
+                                    title="Go to Link"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        onFinish();
+                                    }}
+                                >
+                                    <i className="icon demo"></i>Go to Link
+                                </a>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}

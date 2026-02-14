@@ -172,6 +172,21 @@ const PostPage: React.FC<PostPageProps> = ({ postId, categories }) => {
           </div>
         )}
 
+        {/* SafeLink Overlay Step 2: Timer - Inline (Top) */}
+        {stepParam === '2' && encUrl && (
+          <div className="w-full max-w-2xl mx-auto mb-8">
+            <SafeLinkOverlay
+              step="timer"
+              renderMode="timer"
+              timer={timer}
+              initialTimer={15}
+              onVerify={() => { }}
+              onFinish={handleFinish}
+              isProcessing={false}
+            />
+          </div>
+        )}
+
         <AdUnit className="mb-12" />
 
         <div
@@ -201,11 +216,12 @@ const PostPage: React.FC<PostPageProps> = ({ postId, categories }) => {
 
       <Sidebar categories={categories} />
 
-      {/* SafeLink Overlay Step 2: Timer & Destination - Inline */}
+      {/* SafeLink Overlay Step 2: Destination Button - Inline (Bottom) */}
       {stepParam === '2' && encUrl && (
         <div className="w-full max-w-2xl mx-auto mt-8 mb-12">
           <SafeLinkOverlay
             step="timer"
+            renderMode="button"
             timer={timer}
             initialTimer={15}
             onVerify={() => { }}
