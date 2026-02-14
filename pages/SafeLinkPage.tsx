@@ -1,53 +1,126 @@
-import React, { useEffect, useState } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { fetchRandomPostId } from '../services/bloggerService';
+import { SafeLinkCrypto } from '../utils/crypto';
 
 const SafeLinkPage: React.FC = () => {
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-  const destination = searchParams.get('url');
+  const [url, setUrl] = useState('');
+  const [generatedLink, setGeneratedLink] = useState('');
+  const [isCopied, setIsCopied] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const initLifeCycle = async () => {
-      if (!destination) {
-        setError("Invalid destination link.");
+  const handleGenerate = async () => {
+    if (!url) {
+      setError("Please enter a URL.");
+      return;
+    }
+    setError(null);
+    setLoading(true);
+
+    try {
+      const postId = await fetchRandomPostId();
+      if (!postId) {
+        setError("Failed to fetch a random post ID. Please try again.");
         return;
       }
 
-      try {
-        const randomPostId = await fetchRandomPostId();
-        if (randomPostId) {
-          // Redirect to the random post with step=1 and the destination
-          // We encode the destination to ensure it passes correctly through the URL
-          navigate(`/post/${randomPostId}?step=1&destination=${encodeURIComponent(destination)}`, { replace: true });
-        } else {
-          setError("Failed to initialize verification. Please try again.");
-        }
-      } catch (err) {
-        console.error(err);
-        setError("An error occurred. Please try again.");
-      }
-    };
+      const encryptedUrl = SafeLinkCrypto.encode(url);
+      const safeLink = `${window.location.origin}${window.location.pathname}#/post/${postId}?step=1&url=${encodeURIComponent(encryptedUrl)}`;
 
-    initLifeCycle();
-  }, [destination, navigate]);
+      setGeneratedLink(safeLink);
+    } catch (err) {
+      console.error(err);
+      setError("An error occurred while generating the link.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center p-8 bg-white rounded-2xl shadow-lg">
-          <h1 className="text-2xl font-bold text-red-500 mb-2">Error</h1>
-          <p className="text-gray-600">{error}</p>
-        </div>
-      </div>
-    );
-  }
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(generatedLink);
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 2000);
+  };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 space-y-4">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-primary border-r-2"></div>
-      <p className="text-sm font-semibold text-gray-500">Initializing SafeLink...</p>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-2xl shadow-xl">
+        <div>
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            SafeLink Generator
+          </h2>
+          <p className="mt-2 text-center text-sm text-gray-600">
+            Protect your links with simple human verification.
+          </p>
+        </div>
+
+        <div className="mt-8 space-y-6">
+          <div className="cArea">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Enter Link here <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              className="cInpt"
+              placeholder="https://example.com"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+            />
+            {error && <span className="n req">{error}</span>}
+          </div>
+
+          <div className={`cArea ${generatedLink ? '' : 'hidden'}`}>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Protected Link
+            </label>
+            <input
+              type="text"
+              className="cInpt bg-gray-50"
+              readOnly
+              value={generatedLink}
+            />
+          </div>
+
+          <div className="flex gap-4">
+            {!generatedLink ? (
+              <button
+                onClick={handleGenerate}
+                disabled={loading}
+                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 transition-all"
+              >
+                {loading ? 'Generating...' : 'Protect Link'}
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={copyToClipboard}
+                  className="flex-1 flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all"
+                >
+                  {isCopied ? 'Copied!' : 'Copy'}
+                </button>
+                <a
+                  href={generatedLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 flex justify-center py-3 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-bold text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all"
+                >
+                  View
+                </a>
+                <button
+                  onClick={() => {
+                    setGeneratedLink('');
+                    setUrl('');
+                  }}
+                  className="px-3 rounded-lg border border-gray-200 text-gray-500 hover:text-red-500 hover:border-red-500 transition-colors"
+                >
+                  Reset
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

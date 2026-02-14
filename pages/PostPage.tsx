@@ -1,10 +1,11 @@
-
 import React, { useEffect, useState } from 'react';
 import { fetchPostById, fetchRandomPostId } from '../services/bloggerService';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { BloggerPost } from '../types';
 import AdUnit from '../components/AdUnit';
 import Sidebar from '../components/Sidebar';
+import SafeLinkOverlay from '../components/SafeLink/SafeLinkOverlay';
+import { SafeLinkCrypto } from '../utils/crypto';
 
 interface PostPageProps {
   postId: string;
@@ -16,29 +17,23 @@ const PostPage: React.FC<PostPageProps> = ({ postId, categories }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // SafeLink Overlay Logic
+  // SafeLink Logic
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const stepParam = searchParams.get('step');
-  const destinationParam = searchParams.get('destination');
+  const encUrl = searchParams.get('url');
 
-  const [timer, setTimer] = useState(15); // 15 seconds timer
-  const [canProceed, setCanProceed] = useState(false);
+  const [timer, setTimer] = useState(15);
   const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
-    // Reset state when post/step changes
-    setTimer(15);
-    setCanProceed(false);
-    setIsProcessing(false);
-
-    // Only run timer if we are in a verification step
-    if (stepParam && destinationParam) {
+    // Timer logic for Step 2
+    if (stepParam === '2' && encUrl) {
+      setTimer(15);
       const interval = setInterval(() => {
         setTimer((prev) => {
-          if (prev <= 1) {
+          if (prev <= 0) {
             clearInterval(interval);
-            setCanProceed(true);
             return 0;
           }
           return prev - 1;
@@ -46,27 +41,38 @@ const PostPage: React.FC<PostPageProps> = ({ postId, categories }) => {
       }, 1000);
       return () => clearInterval(interval);
     }
-  }, [stepParam, destinationParam, postId]);
+  }, [stepParam, encUrl, postId]);
 
-  const handleSafeLinkAction = async () => {
-    if (!canProceed || !destinationParam) return;
+  const handleVerify = async () => {
+    if (stepParam !== '1' || !encUrl) return;
     setIsProcessing(true);
 
-    if (stepParam === '1') {
-      // Step 1: Go to Step 2 (Another Random Post)
+    try {
       const nextPostId = await fetchRandomPostId();
       if (nextPostId) {
-        // Scroll to top
-        window.scrollTo(0, 0);
-        navigate(`/post/${nextPostId}?step=2&destination=${encodeURIComponent(destinationParam)}`);
+        // Simulate "Generating Link..." delay
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          navigate(`/post/${nextPostId}?step=2&url=${encodeURIComponent(encUrl)}`);
+        }, 1500);
       } else {
-        // Fallback: stay on page or error
-        alert("Could not load next step. Please try again.");
+        alert("Failed to generate link. Please try again.");
         setIsProcessing(false);
       }
-    } else if (stepParam === '2') {
-      // Step 2: Go to Final Destination
-      window.location.href = destinationParam;
+    } catch (e) {
+      console.error(e);
+      setIsProcessing(false);
+    }
+  };
+
+  const handleFinish = () => {
+    if (stepParam !== '2' || !encUrl) return;
+    try {
+      const destination = SafeLinkCrypto.decode(encUrl);
+      window.location.href = destination;
+    } catch (e) {
+      console.error("Failed to decode URL", e);
+      alert("Invalid link format.");
     }
   };
 
@@ -178,56 +184,35 @@ const PostPage: React.FC<PostPageProps> = ({ postId, categories }) => {
       </article>
 
       <Sidebar categories={categories} />
-      <Sidebar categories={categories} />
 
-      {/* SafeLink Overlay UI */}
-      {stepParam && destinationParam && (
-        <div className="fixed bottom-0 left-0 right-0 z-[1000] p-4 flex justify-center pointer-events-none">
-          <div className="bg-white/95 backdrop-blur-md border border-gray-200 shadow-2xl rounded-2xl p-4 w-full max-w-md pointer-events-auto animate-slide-up">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-black uppercase tracking-widest text-gray-500">
-                SafeLink Verification • Step {stepParam}/2
-              </span>
-              <span className={`text-xs font-bold px-2 py-1 rounded bg-gray-100 ${timer > 0 ? 'text-gray-500' : 'text-green-600'}`}>
-                {timer > 0 ? `${timer}s` : 'Ready'}
-              </span>
-            </div>
+      {/* SafeLink Overlay Step 1: Human Verification */}
+      {stepParam === '1' && encUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/5 backdrop-blur-sm pointer-events-none">
+          <div className="pointer-events-auto w-full max-w-xl">
+            <SafeLinkOverlay
+              step="verification"
+              timer={0}
+              initialTimer={0}
+              onVerify={handleVerify}
+              onFinish={() => { }}
+              isProcessing={isProcessing}
+            />
+          </div>
+        </div>
+      )}
 
-            <div className="w-full bg-gray-100 h-1.5 rounded-full mb-4 overflow-hidden">
-              <div
-                className="h-full bg-primary transition-all duration-1000 ease-linear"
-                style={{ width: `${((15 - timer) / 15) * 100}%` }}
-              ></div>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              {/* Simulated Ad/Instruction Message */}
-              <div className="text-[11px] text-center text-gray-400 mb-1">
-                Please scroll and wait for the timer to finish...
-              </div>
-
-              <button
-                onClick={handleSafeLinkAction}
-                disabled={!canProceed || isProcessing}
-                className={`w-full py-3.5 rounded-xl font-black text-sm uppercase tracking-wider transition-all shadow-lg ${canProceed
-                    ? 'bg-primary text-white hover:bg-blue-700 hover:shadow-primary/30 transform hover:-translate-y-1'
-                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                  }`}
-              >
-                {isProcessing
-                  ? 'Processing...'
-                  : stepParam === '1'
-                    ? 'Click to Continue'
-                    : 'Get Link'
-                }
-              </button>
-
-              {stepParam === '2' && !canProceed && (
-                <div className="text-[10px] text-center text-red-400 mt-1 animate-pulse">
-                  Do not close this page. Link generating...
-                </div>
-              )}
-            </div>
+      {/* SafeLink Overlay Step 2: Timer & Destination */}
+      {stepParam === '2' && encUrl && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none p-4">
+          <div className="pointer-events-auto bg-white/95 backdrop-blur shadow-2xl rounded-t-3xl border-t border-gray-200 p-6">
+            <SafeLinkOverlay
+              step="timer"
+              timer={timer}
+              initialTimer={15}
+              onVerify={() => { }}
+              onFinish={handleFinish}
+              isProcessing={false}
+            />
           </div>
         </div>
       )}
