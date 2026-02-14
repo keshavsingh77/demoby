@@ -11,13 +11,25 @@ interface SafeLinkOverlayProps {
 
 const SafeLinkOverlay: React.FC<SafeLinkOverlayProps> = ({
     step,
-    timer,
+    timer: propTimer,
     initialTimer,
     onVerify,
     onFinish,
     isProcessing
 }) => {
-    const progressWidth = ((initialTimer - timer) / initialTimer) * 100;
+    const [verificationTimer, setVerificationTimer] = React.useState(5);
+    const progressWidth = ((initialTimer - propTimer) / initialTimer) * 100;
+
+    React.useEffect(() => {
+        if (step === 'verification' && verificationTimer > 0) {
+            const interval = setInterval(() => {
+                setVerificationTimer((prev) => prev - 1);
+            }, 1000);
+            return () => clearInterval(interval);
+        }
+    }, [step, verificationTimer]);
+
+    const canVerify = verificationTimer === 0;
 
     return (
         <div className="my-8 w-full max-w-2xl mx-auto">
@@ -36,8 +48,12 @@ const SafeLinkOverlay: React.FC<SafeLinkOverlayProps> = ({
                         Generating Link... Please Wait
                     </div>
 
-                    <button className="button pstL" onClick={onVerify} disabled={isProcessing}>
-                        I am not a Robot
+                    <button
+                        className={`button pstL ${!canVerify ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        onClick={onVerify}
+                        disabled={isProcessing || !canVerify}
+                    >
+                        {canVerify ? 'I am not a Robot' : `Please Wait ${verificationTimer}s`}
                     </button>
                 </div>
             )}
@@ -46,14 +62,14 @@ const SafeLinkOverlay: React.FC<SafeLinkOverlayProps> = ({
             {step === 'timer' && (
                 <div className="aSlT" id="aSlCnt">
                     <div className="w-full">
-                        <div className="aSlP" style={{ display: timer > 0 ? 'flex' : 'none' }}>
+                        <div className="aSlP" style={{ display: propTimer > 0 ? 'flex' : 'none' }}>
                             <div className="aSlW" style={{ width: `${progressWidth}%` }} />
                             <span className="aSlC">
-                                Please wait <span className="aSlCd">{timer}</span> seconds...
+                                Please wait <span className="aSlCd">{propTimer}</span> seconds...
                             </span>
                         </div>
 
-                        <div className={`aScr ${timer === 0 ? 'visible' : ''}`}>
+                        <div className={`aScr ${propTimer === 0 ? 'visible' : ''}`}>
                             <div className="aScrH">
                                 Scroll Down and click on <span className="hglt">Go to Link</span> for destination
                             </div>
@@ -66,7 +82,7 @@ const SafeLinkOverlay: React.FC<SafeLinkOverlayProps> = ({
                             </div>
                         </div>
 
-                        <div className={`aSlB ${timer === 0 ? 'visible' : ''}`}>
+                        <div className={`aSlB ${propTimer === 0 ? 'visible' : ''}`}>
                             <a
                                 href="#"
                                 className="button safeGoL"

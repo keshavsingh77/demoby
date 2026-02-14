@@ -185,35 +185,33 @@ const PostPage: React.FC<PostPageProps> = ({ postId, categories }) => {
 
       <Sidebar categories={categories} />
 
-      {/* SafeLink Overlay Step 1: Human Verification */}
+      <Sidebar categories={categories} />
+
+      {/* SafeLink Overlay Step 1: Human Verification - Inline */}
       {stepParam === '1' && encUrl && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/5 backdrop-blur-sm pointer-events-none">
-          <div className="pointer-events-auto w-full max-w-xl">
-            <SafeLinkOverlay
-              step="verification"
-              timer={0}
-              initialTimer={0}
-              onVerify={handleVerify}
-              onFinish={() => { }}
-              isProcessing={isProcessing}
-            />
-          </div>
+        <div className="w-full max-w-2xl mx-auto mt-8 mb-12">
+          <SafeLinkOverlay
+            step="verification"
+            timer={5} // 5 second countdown for button
+            initialTimer={5}
+            onVerify={handleVerify}
+            onFinish={() => { }}
+            isProcessing={isProcessing}
+          />
         </div>
       )}
 
-      {/* SafeLink Overlay Step 2: Timer & Destination */}
+      {/* SafeLink Overlay Step 2: Timer & Destination - Inline */}
       {stepParam === '2' && encUrl && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none p-4">
-          <div className="pointer-events-auto bg-white/95 backdrop-blur shadow-2xl rounded-t-3xl border-t border-gray-200 p-6">
-            <SafeLinkOverlay
-              step="timer"
-              timer={timer}
-              initialTimer={15}
-              onVerify={() => { }}
-              onFinish={handleFinish}
-              isProcessing={false}
-            />
-          </div>
+        <div className="w-full max-w-2xl mx-auto mt-8 mb-12">
+          <SafeLinkOverlay
+            step="timer"
+            timer={timer}
+            initialTimer={15}
+            onVerify={() => { }}
+            onFinish={handleFinish}
+            isProcessing={false}
+          />
         </div>
       )}
     </div>
