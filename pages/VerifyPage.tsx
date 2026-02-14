@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { fetchRandomPostId } from '../services/bloggerService';
+import { SafeLinkCrypto } from '../utils/crypto';
 
 const VerifyPage: React.FC = () => {
     const { token } = useParams<{ token: string }>();
@@ -23,12 +24,23 @@ const VerifyPage: React.FC = () => {
 
                 const postId = await fetchRandomPostId();
                 if (postId) {
-                    // Normalize token (replace URL-safe chars with standard Base64 chars)
-                    // This ensures PostPage can decode it correctly
-                    const normalizedToken = token.replace(/-/g, '+').replace(/_/g, '/');
+                    // 1. Normalize URL-safe chars to Standard Base64
+                    const standardBase64 = token.replace(/-/g, '+').replace(/_/g, '/');
 
-                    // Redirect to PostPage Step 1
-                    navigate(`/post/${postId}?step=1&url=${encodeURIComponent(normalizedToken)}`, { replace: true });
+                    try {
+                        // 2. Decode to plain text (e.g., https://t.me/...)
+                        const plainUrl = atob(standardBase64);
+
+                        // 3. Re-encode using Custom Crypto for PostPage
+                        // This bridges the mismatch between Bot (Standard) and Site (Custom)
+                        const customEncoded = SafeLinkCrypto.encode(plainUrl);
+
+                        // Redirect to PostPage Step 1
+                        navigate(`/post/${postId}?step=1&url=${encodeURIComponent(customEncoded)}`, { replace: true });
+                    } catch (decodeErr) {
+                        console.error("Token decode failed", decodeErr);
+                        setError("Invalid Token Format.");
+                    }
                 } else {
                     setError("System busy. Please try again.");
                 }
