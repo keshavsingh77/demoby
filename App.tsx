@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { HashRouter, Routes, Route, useLocation, useParams } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation, useParams } from 'react-router-dom';
 import { fetchBlogInfo, fetchPosts } from './services/bloggerService';
 import { BloggerBlog, PageType } from './types';
 import Header from './components/Header';
@@ -11,6 +11,7 @@ import CategoryPage from './pages/CategoryPage';
 import StandardPage from './pages/StandardPage';
 import SafeLinkPage from './pages/SafeLinkPage';
 import VerifyPage from './pages/VerifyPage';
+import ShortLinkPage from './pages/ShortLinkPage';
 
 const BottomNav: React.FC = () => {
   const items = [
@@ -78,6 +79,7 @@ const AppContent: React.FC = () => {
           <Route path="/category/:label" element={<CategoryRouteWrapper categories={categories} />} />
           <Route path="/safe-link" element={<SafeLinkPage />} />
           <Route path="/verify/:token" element={<VerifyPage />} />
+          <Route path="/:shortCode" element={<ShortLinkPage />} />
 
           <Route path="*" element={<Home blogInfo={blogInfo} categories={categories} />} />
         </Routes>
@@ -101,9 +103,9 @@ const CategoryRouteWrapper = ({ categories }: { categories: string[] }) => {
 
 const App: React.FC = () => {
   return (
-    <HashRouter basename="/">
+    <BrowserRouter>
       <AppContent />
-    </HashRouter>
+    </BrowserRouter>
   );
 };
 
