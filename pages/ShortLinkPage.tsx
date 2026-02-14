@@ -39,12 +39,26 @@ const ShortLinkPage: React.FC = () => {
 
                     // If API returns full URL "https://.../#/verify/TOKEN", extract TOKEN.
 
+                    // 1. Data IS the token (Simplest Case)
                     let token = data.url;
-                    if (token.includes('/#/verify/')) {
-                        token = token.split('/#/verify/')[1];
+
+                    // 2. Data is a Full URL (e.g. from Bot saving the full link)
+                    if (data.url.includes('/#/verify/')) {
+                        token = data.url.split('/#/verify/')[1];
+                    } else if (data.url.includes('/verify/')) {
+                        // Fallback for non-hash routing if changed later
+                        token = data.url.split('/verify/')[1];
                     }
 
-                    // Navigate to Verify Page
+                    // Remove any trailing slashes or queries if mistakenly included
+                    if (token.includes('?')) token = token.split('?')[0];
+
+                    if (!token) {
+                        setError("Invalid Link Configuration");
+                        return;
+                    }
+
+                    // Navigate to Verify Page with the CLEAN token
                     navigate(`/verify/${token}`, { replace: true });
 
                 } else {

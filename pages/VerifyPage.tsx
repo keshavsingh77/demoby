@@ -30,6 +30,7 @@ const VerifyPage: React.FC = () => {
                     try {
                         // 2. Decode to plain text (e.g., https://t.me/...)
                         const plainUrl = atob(standardBase64);
+                        console.log("Decoded Target:", plainUrl); // Debug log
 
                         // 3. Re-encode using Custom Crypto for PostPage
                         // This bridges the mismatch between Bot (Standard) and Site (Custom)
@@ -39,7 +40,8 @@ const VerifyPage: React.FC = () => {
                         navigate(`/post/${postId}?step=1&url=${encodeURIComponent(customEncoded)}`, { replace: true });
                     } catch (decodeErr) {
                         console.error("Token decode failed", decodeErr);
-                        setError("Invalid Token Format.");
+                        console.error("Failed Token:", token);
+                        setError("Invalid Token Format. Please request a new link.");
                     }
                 } else {
                     setError("System busy. Please try again.");
