@@ -41,8 +41,10 @@ export const SafeLinkCrypto = {
         let enc1, enc2, enc3, enc4;
         let i = 0;
 
+        // Replace URL-safe characters with standard Base64 characters
+        const base64Standard = input.replace(/-/g, '+').replace(/_/g, '/');
         // Remove non-base64 characters
-        const cleanInput = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
+        const cleanInput = base64Standard.replace(/[^A-Za-z0-9\+\/\=]/g, "");
 
         while (i < cleanInput.length) {
             enc1 = _keyStr.indexOf(cleanInput.charAt(i++));
