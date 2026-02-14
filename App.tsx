@@ -10,6 +10,7 @@ import PostPage from './pages/PostPage';
 import CategoryPage from './pages/CategoryPage';
 import StandardPage from './pages/StandardPage';
 import SafeLinkPage from './pages/SafeLinkPage';
+import VerifyPage from './pages/VerifyPage';
 
 const BottomNav: React.FC = () => {
   const items = [
@@ -76,6 +77,7 @@ const AppContent: React.FC = () => {
           <Route path="/post/:id" element={<PostRouteWrapper categories={categories} />} />
           <Route path="/category/:label" element={<CategoryRouteWrapper categories={categories} />} />
           <Route path="/safe-link" element={<SafeLinkPage />} />
+          <Route path="/verify/:token" element={<VerifyPage />} />
 
           <Route path="*" element={<Home blogInfo={blogInfo} categories={categories} />} />
         </Routes>

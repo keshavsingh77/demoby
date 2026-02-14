@@ -1,14 +1,43 @@
 import React, { useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { fetchRandomPostId } from '../services/bloggerService';
 import { SafeLinkCrypto } from '../utils/crypto';
 
 const SafeLinkPage: React.FC = () => {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [url, setUrl] = useState('');
   const [generatedLink, setGeneratedLink] = useState('');
   const [isCopied, setIsCopied] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    const autoUrl = searchParams.get('url');
+    if (autoUrl) {
+      setUrl(autoUrl);
+      handleAutoProcess(autoUrl);
+    }
+  }, [searchParams]);
+
+  const handleAutoProcess = async (targetUrl: string) => {
+    setLoading(true);
+    try {
+      const postId = await fetchRandomPostId();
+      if (!postId) {
+        setError("Failed to fetch post ID.");
+        setLoading(false);
+        return;
+      }
+      const encryptedUrl = SafeLinkCrypto.encode(targetUrl);
+      // Automatically redirect to the verification flow
+      navigate(`/post/${postId}?step=1&url=${encodeURIComponent(encryptedUrl)}`);
+    } catch (err) {
+      console.error(err);
+      setError("Error processing link.");
+      setLoading(false);
+    }
+  };
 
   const handleGenerate = async () => {
     if (!url) {
