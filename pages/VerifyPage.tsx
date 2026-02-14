@@ -23,8 +23,12 @@ const VerifyPage: React.FC = () => {
 
                 const postId = await fetchRandomPostId();
                 if (postId) {
+                    // Normalize token (replace URL-safe chars with standard Base64 chars)
+                    // This ensures PostPage can decode it correctly
+                    const normalizedToken = token.replace(/-/g, '+').replace(/_/g, '/');
+
                     // Redirect to PostPage Step 1
-                    navigate(`/post/${postId}?step=1&url=${encodeURIComponent(token)}`, { replace: true });
+                    navigate(`/post/${postId}?step=1&url=${encodeURIComponent(normalizedToken)}`, { replace: true });
                 } else {
                     setError("System busy. Please try again.");
                 }
