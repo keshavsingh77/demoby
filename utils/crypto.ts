@@ -66,7 +66,19 @@ export const SafeLinkCrypto = {
             }
         }
 
-        return SafeLinkCrypto._utf8_decode(output);
+        const decoded = SafeLinkCrypto._utf8_decode(output);
+        if (decoded.startsWith('http')) {
+            return decoded;
+        }
+        // Fallback: If decoded string doesn't look like a URL, 
+        // maybe the input itself was a URL (just encoded or plain)?
+        try {
+            const fallback = decodeURIComponent(input);
+            if (fallback.startsWith('http')) return fallback;
+        } catch (e) {
+            if (input.startsWith('http')) return input;
+        }
+        return decoded || input;
     },
 
     _utf8_encode: (string: string): string => {
