@@ -35,7 +35,8 @@ const SafeLinkOverlay: React.FC<SafeLinkOverlayProps> = ({
         <div className="my-8 w-full max-w-2xl mx-auto">
             {/* Human Verification Step */}
             {step === 'verification' && (
-                <div className={`hmv ${isProcessing ? 'alt' : ''}`} id="hmVrfy">
+                // Add 'alt' class when verification is ready (timer == 0) to show button
+                <div className={`hmv ${canVerify ? 'alt' : ''}`} id="hmVrfy">
                     <div className="hmvH bef">Verify that You are not a Robot</div>
                     <div className="hmvH aft">Are you a Robot?</div>
 
@@ -45,15 +46,15 @@ const SafeLinkOverlay: React.FC<SafeLinkOverlayProps> = ({
                                 <animateTransform attributeName="transform" attributeType="xml" dur="0.6s" from="0 25 25" repeatCount="indefinite" to="360 25 25" type="rotate" />
                             </path>
                         </svg>
-                        Generating Link... Please Wait
+                        Generating Link... Please Wait {verificationTimer > 0 && `(${verificationTimer})`}
                     </div>
 
                     <button
-                        className={`button pstL ${!canVerify ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        className="button pstL"
                         onClick={onVerify}
-                        disabled={isProcessing || !canVerify}
+                        disabled={isProcessing}
                     >
-                        {canVerify ? 'I am not a Robot' : `Please Wait ${verificationTimer}s`}
+                        {isProcessing ? 'Processing...' : 'I am not a Robot'}
                     </button>
                 </div>
             )}
